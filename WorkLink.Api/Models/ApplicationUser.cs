@@ -10,4 +10,5 @@ public class ApplicationUser : IdentityUser
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public ICollection<UserSkill> UserSkills { get; set; } = [];
     public ICollection<Job> Jobs { get; set; } = [];
+    public ICollection<Proposal> Proposals { get; set; } = [];
 }

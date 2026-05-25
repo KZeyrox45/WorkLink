@@ -24,4 +24,5 @@ public class Job
     public Category Category { get; set; } = null!;
     public ApplicationUser Client { get; set; } = null!;
     public ICollection<JobSkill> JobSkills { get; set; } = [];
+    public ICollection<Proposal> Proposals { get; set; } = [];
 }

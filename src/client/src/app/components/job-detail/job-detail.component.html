@@ -13,30 +13,100 @@
           <span *ngIf="job.durationDays">{{ job.durationDays }} days</span>
           <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
           <span>Posted {{ job.createdAt | date }}</span>
+          <span *ngIf="job.proposalCount > 0">{{ job.proposalCount }} proposal(s)</span>
         </div>
       </div>
     </div>
 
     <div class="description">{{ job.description }}</div>
 
-    <div *ngIf="job.skills.length > 0">
+    <div *ngIf="job.skills.length > 0" style="margin-top: 1rem;">
       <strong>Required Skills</strong>
       <div style="margin-top: 0.4rem;">
         <span class="skill-tag" *ngFor="let skill of job.skills">{{ skill.name }}</span>
       </div>
     </div>
 
-    <div class="client-info">
+    <div class="client-info" style="margin-top: 1rem;">
       <strong>Client</strong>
       <div style="margin-top: 0.3rem;">
         <a [routerLink]="['/users', job.clientId]">{{ job.clientName }}</a>
       </div>
     </div>
 
-    <div class="actions" *ngIf="isOwner">
-      <button class="edit-btn" [routerLink]="['/jobs', job.id, 'edit']">Edit</button>
-      <button class="delete-btn" (click)="onDelete()">Delete</button>
-      <button class="back-btn" routerLink="/jobs">Back</button>
+    <div class="actions">
+      <button class="back-btn" routerLink="/jobs">Back to Jobs</button>
+      <button *ngIf="isOwner" class="edit-btn" [routerLink]="['/jobs', job.id, 'edit']">Edit</button>
+      <button *ngIf="isOwner" class="delete-btn" (click)="onDelete()">Delete</button>
+    </div>
+
+    <!-- Proposal submission (Freelancer) -->
+    <div class="section" *ngIf="canSubmit && !showSubmitForm">
+      <button class="submit-btn" (click)="showSubmitForm = true">Submit a Proposal</button>
+    </div>
+
+    <div class="section" *ngIf="canSubmit && showSubmitForm">
+      <h3>Submit Proposal</h3>
+      <div class="error" *ngIf="submitError">{{ submitError }}</div>
+      <div class="form-group">
+        <label for="coverLetter">Cover Letter</label>
+        <textarea id="coverLetter" [(ngModel)]="coverLetter" placeholder="Explain why you're a good fit..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="bidAmount">Bid Amount ($)</label>
+          <input id="bidAmount" type="number" [(ngModel)]="bidAmount" min="0" />
+        </div>
+        <div class="form-group">
+          <label for="estimatedDays">Estimated Days</label>
+          <input id="estimatedDays" type="number" [(ngModel)]="estimatedDays" min="1" max="365" />
+        </div>
+      </div>
+      <button class="submit-btn" (click)="onSubmitProposal()" [disabled]="submitting || !bidAmount || !estimatedDays">
+        {{ submitting ? 'Submitting...' : 'Submit Proposal' }}
+      </button>
+      <button class="back-btn" (click)="showSubmitForm = false">Cancel</button>
+    </div>
+
+    <!-- My proposal status (Freelancer) -->
+    <div class="section" *ngIf="myProposal && !isOwner">
+      <h3>Your Proposal</h3>
+      <div class="proposal-card">
+        <div>
+          <span class="status-badge status-{{ myProposal.status }}">{{ myProposal.status }}</span>
+        </div>
+        <div class="meta">
+          Bid: {{ myProposal.bidAmount | currency }} | {{ myProposal.estimatedDays }} days
+        </div>
+        <p class="cover-letter">{{ myProposal.coverLetter }}</p>
+        <button *ngIf="myProposal.status === 'Pending'" class="back-btn" (click)="onWithdraw(myProposal.id)">Withdraw</button>
+      </div>
+    </div>
+
+    <!-- Proposal list (Client - owner only) -->
+    <div class="section" *ngIf="isOwner && proposals.length > 0">
+      <h3>Proposals ({{ proposals.length }})</h3>
+      <div class="proposal-card" *ngFor="let prop of proposals">
+        <div class="header">
+          <div>
+            <span class="name">{{ prop.freelancerName }}</span>
+            <div class="meta">
+              Bid: {{ prop.bidAmount | currency }} | {{ prop.estimatedDays }} days
+            </div>
+          </div>
+          <span class="status-badge status-{{ prop.status }}">{{ prop.status }}</span>
+        </div>
+        <p class="cover-letter">{{ prop.coverLetter }}</p>
+        <div class="actions" *ngIf="prop.status === 'Pending'">
+          <button class="accept-btn" (click)="onAccept(prop.id)">Accept</button>
+          <button class="reject-btn" (click)="onReject(prop.id)">Reject</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty proposal state for clients -->
+    <div class="section" *ngIf="isOwner && proposals.length === 0">
+      <p style="color: #666;">No proposals yet.</p>
     </div>
   </div>
 </div>

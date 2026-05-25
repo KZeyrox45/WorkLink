@@ -11,6 +11,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Job> Jobs => Set<Job>();
     public DbSet<JobSkill> JobSkills => Set<JobSkill>();
+    public DbSet<Proposal> Proposals => Set<Proposal>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -63,6 +64,23 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Category>(entity =>
         {
             entity.HasIndex(c => c.Slug).IsUnique();
+        });
+
+        builder.Entity<Proposal>(entity =>
+        {
+            entity.Property(p => p.BidAmount).HasPrecision(18, 2);
+
+            entity.HasOne(p => p.Job)
+                  .WithMany(j => j.Proposals)
+                  .HasForeignKey(p => p.JobId)
+                  .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(p => p.Freelancer)
+                  .WithMany(u => u.Proposals)
+                  .HasForeignKey(p => p.FreelancerId)
+                  .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasIndex(p => new { p.JobId, p.FreelancerId }).IsUnique();
         });
     }
 }

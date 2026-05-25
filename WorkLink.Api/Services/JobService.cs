@@ -26,6 +26,7 @@ public class JobService
             .Include(j => j.Category)
             .Include(j => j.Client)
             .Include(j => j.JobSkills).ThenInclude(js => js.Skill)
+            .Include(j => j.Proposals)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(keyword))
@@ -73,6 +74,7 @@ public class JobService
             .Include(j => j.Category)
             .Include(j => j.Client)
             .Include(j => j.JobSkills).ThenInclude(js => js.Skill)
+            .Include(j => j.Proposals)
             .FirstOrDefaultAsync(j => j.Id == id);
 
         if (job == null)
@@ -179,7 +181,7 @@ public class JobService
                 Id = js.Skill.Id,
                 Name = js.Skill.Name
             }).ToList(),
-            ProposalCount = 0,
+            ProposalCount = job.Proposals?.Count ?? 0,
             CreatedAt = job.CreatedAt
         };
     }
