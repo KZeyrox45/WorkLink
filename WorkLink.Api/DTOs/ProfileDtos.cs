@@ -38,5 +38,7 @@ public class PublicProfileResponse
     public string? AvatarUrl { get; set; }
     public string Role { get; set; } = string.Empty;
     public List<SkillDto> Skills { get; set; } = [];
+    public double AverageRating { get; set; }
+    public int ReviewCount { get; set; }
     public DateTime CreatedAt { get; set; }
 }

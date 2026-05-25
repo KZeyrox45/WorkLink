@@ -41,6 +41,7 @@ builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<SkillService>();
 builder.Services.AddScoped<JobService>();
 builder.Services.AddScoped<ProposalService>();
+builder.Services.AddScoped<ReviewService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 

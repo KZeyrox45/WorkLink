@@ -10,11 +10,16 @@ public class ProfileService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly AppDbContext _db;
+    private readonly ReviewService _reviewService;
 
-    public ProfileService(UserManager<ApplicationUser> userManager, AppDbContext db)
+    public ProfileService(
+        UserManager<ApplicationUser> userManager,
+        AppDbContext db,
+        ReviewService reviewService)
     {
         _userManager = userManager;
         _db = db;
+        _reviewService = reviewService;
     }
 
     public async Task<ProfileResponse> GetProfileAsync(string userId)
@@ -71,6 +76,8 @@ public class ProfileService
             throw new KeyNotFoundException("User not found.");
 
         var roles = await _userManager.GetRolesAsync(user);
+        var averageRating = await _reviewService.GetAverageRatingAsync(userId);
+        var reviewCount = await _db.Reviews.CountAsync(r => r.RevieweeId == userId);
 
         return new PublicProfileResponse
         {
@@ -80,6 +87,8 @@ public class ProfileService
             AvatarUrl = user.AvatarUrl,
             Role = roles.FirstOrDefault() ?? "Freelancer",
             Skills = await GetUserSkillsAsync(userId),
+            AverageRating = averageRating,
+            ReviewCount = reviewCount,
             CreatedAt = user.CreatedAt
         };
     }

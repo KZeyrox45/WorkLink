@@ -12,6 +12,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Job> Jobs => Set<Job>();
     public DbSet<JobSkill> JobSkills => Set<JobSkill>();
     public DbSet<Proposal> Proposals => Set<Proposal>();
+    public DbSet<Review> Reviews => Set<Review>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -81,6 +82,29 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                   .OnDelete(DeleteBehavior.NoAction);
 
             entity.HasIndex(p => new { p.JobId, p.FreelancerId }).IsUnique();
+        });
+
+        builder.Entity<Review>(entity =>
+        {
+            entity.Property(r => r.Rating).HasDefaultValue(5);
+            entity.Property(r => r.Comment).HasMaxLength(2000);
+
+            entity.HasOne(r => r.Job)
+                  .WithMany()
+                  .HasForeignKey(r => r.JobId)
+                  .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(r => r.Reviewer)
+                  .WithMany(u => u.ReviewsGiven)
+                  .HasForeignKey(r => r.ReviewerId)
+                  .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(r => r.Reviewee)
+                  .WithMany(u => u.ReviewsReceived)
+                  .HasForeignKey(r => r.RevieweeId)
+                  .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasIndex(r => new { r.JobId, r.ReviewerId }).IsUnique();
         });
     }
 }

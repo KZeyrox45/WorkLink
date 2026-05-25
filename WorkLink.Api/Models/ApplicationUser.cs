@@ -11,4 +11,6 @@ public class ApplicationUser : IdentityUser
     public ICollection<UserSkill> UserSkills { get; set; } = [];
     public ICollection<Job> Jobs { get; set; } = [];
     public ICollection<Proposal> Proposals { get; set; } = [];
+    public ICollection<Review> ReviewsGiven { get; set; } = [];
+    public ICollection<Review> ReviewsReceived { get; set; } = [];
 }

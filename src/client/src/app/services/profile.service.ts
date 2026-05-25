@@ -25,6 +25,8 @@ export interface PublicProfileResponse {
   avatarUrl: string | null;
   role: string;
   skills: SkillDto[];
+  averageRating: number;
+  reviewCount: number;
   createdAt: string;
 }
 

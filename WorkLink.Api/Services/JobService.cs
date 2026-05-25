@@ -168,6 +168,24 @@ public class JobService
         await _db.SaveChangesAsync();
     }
 
+    public async Task<JobResponse> CompleteAsync(int jobId, string clientId)
+    {
+        var job = await _db.Jobs
+            .Include(j => j.Proposals)
+            .FirstOrDefaultAsync(j => j.Id == jobId);
+        if (job == null)
+            throw new KeyNotFoundException("Job not found.");
+        if (job.ClientId != clientId)
+            throw new UnauthorizedAccessException("You can only complete your own jobs.");
+        if (job.Status != JobStatus.InProgress)
+            throw new InvalidOperationException("Only in-progress jobs can be completed.");
+
+        job.Status = JobStatus.Completed;
+        await _db.SaveChangesAsync();
+
+        return await GetByIdAsync(job.Id);
+    }
+
     private JobResponse MapToResponse(Job job)
     {
         return new JobResponse

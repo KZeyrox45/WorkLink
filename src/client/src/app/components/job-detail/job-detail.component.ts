@@ -4,6 +4,7 @@ import { NgIf, NgFor, DatePipe, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { JobService, JobResponse } from '../../services/job.service';
 import { ProposalService, ProposalResponse } from '../../services/proposal.service';
+import { ReviewService, ReviewResponse } from '../../services/review.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -31,11 +32,12 @@ import { AuthService } from '../../services/auth.service';
     .section h3 { margin: 0 0 1rem; }
     .form-group { margin-bottom: 1rem; }
     .form-group label { display: block; margin-bottom: 0.3rem; font-weight: 500; }
-    .form-group input, .form-group textarea { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+    .form-group input, .form-group textarea { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
     .form-group textarea { resize: vertical; min-height: 80px; }
     .form-row { display: flex; gap: 1rem; }
     .form-row .form-group { flex: 1; }
     .error { color: #d32f2f; margin-bottom: 0.5rem; }
+    .success { color: #2e7d32; margin-bottom: 0.5rem; }
     .actions { margin-top: 2rem; }
     button { padding: 0.5rem 1.2rem; border: none; border-radius: 4px; cursor: pointer; margin-right: 0.5rem; }
     button:disabled { opacity: 0.6; }
@@ -45,14 +47,19 @@ import { AuthService } from '../../services/auth.service';
     .submit-btn { background: #2e7d32; color: white; }
     .accept-btn { background: #2e7d32; color: white; }
     .reject-btn { background: #d32f2f; color: white; }
+    .complete-btn { background: #1565c0; color: white; }
     .client-info { padding: 1rem; background: #f9f9f9; border-radius: 8px; }
     .client-info a { color: #1565c0; text-decoration: none; font-weight: 500; }
-    .proposal-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; margin-bottom: 0.8rem; background: white; }
-    .proposal-card .header { display: flex; justify-content: space-between; align-items: flex-start; }
-    .proposal-card .name { font-weight: 600; }
-    .proposal-card .meta { font-size: 0.85rem; color: #666; }
+    .proposal-card, .review-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; margin-bottom: 0.8rem; background: white; }
+    .proposal-card .header, .review-card .header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .proposal-card .name, .review-card .name { font-weight: 600; }
+    .proposal-card .meta, .review-card .meta { font-size: 0.85rem; color: #666; }
     .proposal-card .actions { margin-top: 0.8rem; }
     .proposal-card .cover-letter { margin-top: 0.5rem; font-size: 0.9rem; white-space: pre-wrap; }
+    .star { color: #ccc; font-size: 1.4rem; cursor: pointer; user-select: none; }
+    .star.active { color: #fbc02d; }
+    .star-display { color: #fbc02d; font-size: 1rem; }
+    .star-display .empty { color: #ccc; }
   `]
 })
 export class JobDetailComponent implements OnInit {
@@ -71,11 +78,21 @@ export class JobDetailComponent implements OnInit {
   submitting = false;
   submitError = '';
 
+  showReviewForm = false;
+  reviewRating = 0;
+  reviewComment = '';
+  submittingReview = false;
+  reviewError = '';
+  reviewSuccess = '';
+  existingReviews: ReviewResponse[] = [];
+  hasReviewed = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private jobService: JobService,
     private proposalService: ProposalService,
+    private reviewService: ReviewService,
     private auth: AuthService
   ) {}
 
@@ -94,6 +111,7 @@ export class JobDetailComponent implements OnInit {
           this.currentUserId = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
         } catch {}
         this.loadProposals();
+        if (job.status === 'Completed') this.loadReviews();
       },
       error: () => this.error = 'Job not found.',
     });
@@ -111,6 +129,18 @@ export class JobDetailComponent implements OnInit {
     });
   }
 
+  private loadReviews() {
+    if (!this.job) return;
+    this.reviewService.listByUser(this.job.clientId).subscribe({
+      next: (reviews) => {
+        this.existingReviews = reviews.filter(r => r.jobId === this.job!.id);
+        if (this.currentUserId) {
+          this.hasReviewed = this.existingReviews.some(r => r.reviewerId === this.currentUserId);
+        }
+      },
+    });
+  }
+
   get isOwner(): boolean {
     return !!this.job && !!this.currentUserId && this.job.clientId === this.currentUserId;
   }
@@ -120,6 +150,21 @@ export class JobDetailComponent implements OnInit {
       && this.job?.status === 'Open'
       && !this.myProposal
       && !!this.currentUserId;
+  }
+
+  get canComplete(): boolean {
+    return this.isOwner && this.job?.status === 'InProgress';
+  }
+
+  get canReview(): boolean {
+    if (!this.job || this.job.status !== 'Completed' || !this.currentUserId) return false;
+    if (this.hasReviewed) return false;
+    if (this.isOwner) return true;
+    return this.myProposal?.status === 'Accepted';
+  }
+
+  setRating(n: number) {
+    this.reviewRating = n;
   }
 
   onSubmitProposal() {
@@ -139,6 +184,39 @@ export class JobDetailComponent implements OnInit {
       error: (err) => {
         this.submitError = err.error?.message || 'Failed to submit proposal';
         this.submitting = false;
+      },
+    });
+  }
+
+  onComplete() {
+    if (!this.job || !confirm('Mark this job as completed?')) return;
+    this.jobService.completeJob(this.job.id).subscribe({
+      next: (job) => {
+        this.job = job;
+        this.loadReviews();
+      },
+      error: () => alert('Failed to complete job.'),
+    });
+  }
+
+  onSubmitReview() {
+    if (!this.job || this.reviewRating === 0) return;
+    this.reviewError = '';
+    this.reviewSuccess = '';
+    this.submittingReview = true;
+    this.reviewService.create(this.job.id, {
+      rating: this.reviewRating,
+      comment: this.reviewComment,
+    }).subscribe({
+      next: () => {
+        this.reviewSuccess = 'Review submitted!';
+        this.showReviewForm = false;
+        this.submittingReview = false;
+        this.hasReviewed = true;
+      },
+      error: (err) => {
+        this.reviewError = err.error?.message || 'Failed to submit review';
+        this.submittingReview = false;
       },
     });
   }

@@ -111,4 +111,8 @@ export class JobService {
   deleteJob(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/jobs/${id}`);
   }
+
+  completeJob(id: number): Observable<JobResponse> {
+    return this.http.patch<JobResponse>(`${this.apiUrl}/jobs/${id}/complete`, {});
+  }
 }

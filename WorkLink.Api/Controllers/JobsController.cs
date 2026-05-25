@@ -94,6 +94,30 @@ public class JobsController : ControllerBase
         }
     }
 
+    [HttpPatch("{id}/complete")]
+    [Authorize(Roles = "Client")]
+    public async Task<IActionResult> Complete(int id)
+    {
+        var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        try
+        {
+            var job = await _jobService.CompleteAsync(id, clientId);
+            return Ok(job);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpDelete("{id}")]
     [Authorize(Roles = "Client")]
     public async Task<IActionResult> Delete(int id)
