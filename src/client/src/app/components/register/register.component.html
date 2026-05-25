@@ -1,0 +1,50 @@
+<div class="auth-page">
+  <h2>Register</h2>
+  <form (ngSubmit)="onSubmit()" #regForm="ngForm">
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        name="email"
+        [(ngModel)]="email"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="displayName">Display Name</label>
+      <input
+        id="displayName"
+        type="text"
+        name="displayName"
+        [(ngModel)]="displayName"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="password">Password (min 6 characters)</label>
+      <input
+        id="password"
+        type="password"
+        name="password"
+        [(ngModel)]="password"
+        required
+        minlength="6"
+      />
+    </div>
+    <div class="form-group">
+      <label for="role">I want to join as</label>
+      <select id="role" name="role" [(ngModel)]="role">
+        <option value="Freelancer">Freelancer</option>
+        <option value="Client">Client</option>
+      </select>
+    </div>
+    <div class="error" *ngIf="error">{{ error }}</div>
+    <button type="submit" [disabled]="loading || !regForm.form.valid">
+      {{ loading ? 'Registering...' : 'Register' }}
+    </button>
+  </form>
+  <p style="margin-top: 1rem; text-align: center;">
+    Already have an account? <a routerLink="/login">Login</a>
+  </p>
+</div>
