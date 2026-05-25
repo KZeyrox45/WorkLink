@@ -37,6 +37,8 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ProfileService>();
+builder.Services.AddScoped<SkillService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
@@ -66,6 +68,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
+    await WorkLink.Api.Data.DbSeeder.SeedAsync(db);
 }
 
 app.Run();

@@ -8,4 +8,5 @@ public class ApplicationUser : IdentityUser
     public string? Bio { get; set; }
     public string? AvatarUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public ICollection<UserSkill> UserSkills { get; set; } = [];
 }

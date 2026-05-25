@@ -22,6 +22,21 @@ export const routes: Routes = [
       ),
     canActivate: [authGuard],
   },
+  {
+    path: 'profile',
+    loadComponent: () =>
+      import('./components/profile/profile.component').then(
+        (c) => c.ProfileComponent
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'users/:id',
+    loadComponent: () =>
+      import('./components/public-profile/public-profile.component').then(
+        (c) => c.PublicProfileComponent
+      ),
+  },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' },
 ];

@@ -1,0 +1,26 @@
+<div class="profile-page">
+  <div *ngIf="error" class="not-found">{{ error }}</div>
+  <div *ngIf="profile">
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <img
+        [src]="profile.avatarUrl || 'https://via.placeholder.com/100'"
+        alt="avatar"
+        class="avatar"
+      />
+      <div>
+        <h2>{{ profile.displayName }}</h2>
+        <span class="role-badge">{{ profile.role }}</span>
+      </div>
+    </div>
+    <p *ngIf="profile.bio" style="margin-top:1rem;">{{ profile.bio }}</p>
+    <div *ngIf="profile.skills.length > 0" style="margin-top:1rem;">
+      <strong>Skills</strong>
+      <div class="skill-list">
+        <span class="skill-tag" *ngFor="let skill of profile.skills">
+          {{ skill.name }}
+        </span>
+      </div>
+    </div>
+    <p style="margin-top:1.5rem;"><a routerLink="/dashboard">Back to Dashboard</a></p>
+  </div>
+</div>

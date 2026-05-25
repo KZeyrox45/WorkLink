@@ -1,0 +1,40 @@
+<div class="profile-page">
+  <h2>Edit Profile</h2>
+  <form (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="displayName">Display Name</label>
+      <input
+        id="displayName"
+        type="text"
+        name="displayName"
+        [(ngModel)]="displayName"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="bio">Bio</label>
+      <textarea id="bio" name="bio" [(ngModel)]="bio"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="avatarUrl">Avatar URL</label>
+      <input id="avatarUrl" type="text" name="avatarUrl" [(ngModel)]="avatarUrl" />
+    </div>
+    <div class="form-group">
+      <label>Skills</label>
+      <div class="skill-grid">
+        <div
+          class="skill-tag"
+          *ngFor="let skill of allSkills"
+          [class.selected]="selectedSkillIds.has(skill.id)"
+          (click)="toggleSkill(skill.id)"
+        >
+          {{ skill.name }}
+        </div>
+      </div>
+    </div>
+    <div class="error" *ngIf="error">{{ error }}</div>
+    <div class="success" *ngIf="saved">Profile saved!</div>
+    <button type="submit" [disabled]="loading">Save</button>
+    <button type="button" class="secondary" routerLink="/dashboard">Back</button>
+  </form>
+</div>

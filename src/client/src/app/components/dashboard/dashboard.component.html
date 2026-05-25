@@ -4,9 +4,12 @@
       <h2>Welcome, {{ user?.name }}</h2>
       <span class="role-badge">{{ user?.role }}</span>
     </div>
-    <button (click)="logout()">Logout</button>
+    <div>
+      <a routerLink="/profile" style="margin-right: 1rem;">Edit Profile</a>
+      <button (click)="logout()">Logout</button>
+    </div>
   </div>
   <p style="margin-top: 2rem; color: #666;">
-    Dashboard coming soon in Phase 2.
+    Dashboard coming soon.
   </p>
 </div>
