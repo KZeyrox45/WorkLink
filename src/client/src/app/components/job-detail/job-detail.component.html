@@ -1,0 +1,158 @@
+<div class="detail-page">
+  <div *ngIf="error" style="color: #d32f2f;">{{ error }}</div>
+
+  <div *ngIf="job">
+    <div class="header">
+      <div>
+        <h2>{{ job.title }}</h2>
+        <div class="meta">
+          <span>{{ job.categoryName }}</span>
+          <span class="budget" *ngIf="job.budgetMin || job.budgetMax">
+            {{ job.budgetMin | currency }} - {{ job.budgetMax | currency }}
+          </span>
+          <span *ngIf="job.durationDays">{{ job.durationDays }} days</span>
+          <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
+          <span>Posted {{ job.createdAt | date }}</span>
+          <span *ngIf="job.proposalCount > 0">{{ job.proposalCount }} proposal(s)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="description">{{ job.description }}</div>
+
+    <div *ngIf="job.skills.length > 0" style="margin-top: 1rem;">
+      <strong>Required Skills</strong>
+      <div style="margin-top: 0.4rem;">
+        <span class="skill-tag" *ngFor="let skill of job.skills">{{ skill.name }}</span>
+      </div>
+    </div>
+
+    <div class="client-info" style="margin-top: 1rem;">
+      <strong>Client</strong>
+      <div style="margin-top: 0.3rem;">
+        <a [routerLink]="['/users', job.clientId]">{{ job.clientName }}</a>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="back-btn" routerLink="/jobs">Back to Jobs</button>
+      <button *ngIf="isOwner && job.status === 'Open'" class="edit-btn" [routerLink]="['/jobs', job.id, 'edit']">Edit</button>
+      <button *ngIf="isOwner && job.status === 'Open'" class="delete-btn" (click)="onDelete()">Delete</button>
+      <button *ngIf="canComplete" class="complete-btn" (click)="onComplete()">Mark Completed</button>
+    </div>
+
+    <!-- Proposal submission (Freelancer) -->
+    <div class="section" *ngIf="canSubmit && !showSubmitForm">
+      <button class="submit-btn" (click)="showSubmitForm = true">Submit a Proposal</button>
+    </div>
+
+    <div class="section" *ngIf="canSubmit && showSubmitForm">
+      <h3>Submit Proposal</h3>
+      <div class="error" *ngIf="submitError">{{ submitError }}</div>
+      <div class="form-group">
+        <label for="coverLetter">Cover Letter</label>
+        <textarea id="coverLetter" [(ngModel)]="coverLetter" placeholder="Explain why you're a good fit..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="bidAmount">Bid Amount ($)</label>
+          <input id="bidAmount" type="number" [(ngModel)]="bidAmount" min="0" />
+        </div>
+        <div class="form-group">
+          <label for="estimatedDays">Estimated Days</label>
+          <input id="estimatedDays" type="number" [(ngModel)]="estimatedDays" min="1" max="365" />
+        </div>
+      </div>
+      <button class="submit-btn" (click)="onSubmitProposal()" [disabled]="submitting || !bidAmount || !estimatedDays">
+        {{ submitting ? 'Submitting...' : 'Submit Proposal' }}
+      </button>
+      <button class="back-btn" (click)="showSubmitForm = false">Cancel</button>
+    </div>
+
+    <!-- My proposal status (Freelancer) -->
+    <div class="section" *ngIf="myProposal && !isOwner">
+      <h3>Your Proposal</h3>
+      <div class="proposal-card">
+        <div>
+          <span class="status-badge status-{{ myProposal.status }}">{{ myProposal.status }}</span>
+        </div>
+        <div class="meta">
+          Bid: {{ myProposal.bidAmount | currency }} | {{ myProposal.estimatedDays }} days
+        </div>
+        <p class="cover-letter">{{ myProposal.coverLetter }}</p>
+        <button *ngIf="myProposal.status === 'Pending'" class="back-btn" (click)="onWithdraw(myProposal.id)">Withdraw</button>
+      </div>
+    </div>
+
+    <!-- Proposal list (Client - owner only) -->
+    <div class="section" *ngIf="isOwner && proposals.length > 0">
+      <h3>Proposals ({{ proposals.length }})</h3>
+      <div class="proposal-card" *ngFor="let prop of proposals">
+        <div class="header">
+          <div>
+            <span class="name">{{ prop.freelancerName }}</span>
+            <div class="meta">
+              Bid: {{ prop.bidAmount | currency }} | {{ prop.estimatedDays }} days
+            </div>
+          </div>
+          <span class="status-badge status-{{ prop.status }}">{{ prop.status }}</span>
+        </div>
+        <p class="cover-letter">{{ prop.coverLetter }}</p>
+        <div class="actions" *ngIf="prop.status === 'Pending'">
+          <button class="accept-btn" (click)="onAccept(prop.id)">Accept</button>
+          <button class="reject-btn" (click)="onReject(prop.id)">Reject</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" *ngIf="isOwner && proposals.length === 0 && job.status === 'Open'">
+      <p style="color: #666;">No proposals yet.</p>
+    </div>
+
+    <!-- Review form -->
+    <div class="section" *ngIf="canReview && !showReviewForm">
+      <h3>Leave a Review</h3>
+      <button class="submit-btn" (click)="showReviewForm = true">Write a Review</button>
+    </div>
+
+    <div class="section" *ngIf="canReview && showReviewForm">
+      <h3>Write a Review</h3>
+      <div class="error" *ngIf="reviewError">{{ reviewError }}</div>
+      <div class="form-group">
+        <label>Rating</label>
+        <div>
+          <span class="star" *ngFor="let n of [1,2,3,4,5]" [class.active]="n <= reviewRating" (click)="setRating(n)">&#9733;</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="reviewComment">Comment</label>
+        <textarea id="reviewComment" [(ngModel)]="reviewComment" maxlength="2000"></textarea>
+      </div>
+      <button class="submit-btn" (click)="onSubmitReview()" [disabled]="submittingReview || reviewRating === 0">
+        {{ submittingReview ? 'Submitting...' : 'Submit Review' }}
+      </button>
+      <button class="back-btn" (click)="showReviewForm = false">Cancel</button>
+    </div>
+
+    <div class="success" *ngIf="reviewSuccess" style="margin-top: 1rem;">{{ reviewSuccess }}</div>
+
+    <!-- Existing reviews -->
+    <div class="section" *ngIf="existingReviews.length > 0">
+      <h3>Reviews ({{ existingReviews.length }})</h3>
+      <div class="review-card" *ngFor="let rev of existingReviews">
+        <div class="header">
+          <div>
+            <span class="name">{{ rev.reviewerName }}</span>
+            <div>
+              <span class="star-display">
+                <span *ngFor="let n of [1,2,3,4,5]" [class.empty]="n > rev.rating">&#9733;</span>
+              </span>
+            </div>
+          </div>
+          <span style="font-size: 0.85rem; color: #666;">{{ rev.createdAt | date }}</span>
+        </div>
+        <p style="margin-top: 0.4rem;">{{ rev.comment }}</p>
+      </div>
+    </div>
+  </div>
+</div>

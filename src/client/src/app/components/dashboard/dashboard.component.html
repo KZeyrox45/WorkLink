@@ -1,12 +1,43 @@
 <div class="dashboard">
   <div class="header">
     <div>
-      <h2>Welcome, {{ user?.name }}</h2>
-      <span class="role-badge">{{ user?.role }}</span>
+      <h2>Welcome, {{ user?.name }} <span class="role-badge">{{ user?.role }}</span></h2>
     </div>
-    <button (click)="logout()">Logout</button>
+    <div class="actions">
+      <a routerLink="/jobs">Browse Jobs</a>
+      <a *ngIf="isClient" routerLink="/jobs/new">Post a Job</a>
+      <a *ngIf="isClient" routerLink="/my-jobs" class="secondary">My Jobs</a>
+      <a *ngIf="!isClient" routerLink="/my-proposals" class="secondary">My Proposals</a>
+      <a routerLink="/profile" class="secondary">Edit Profile</a>
+      <button (click)="logout()">Logout</button>
+    </div>
   </div>
-  <p style="margin-top: 2rem; color: #666;">
-    Dashboard coming soon in Phase 2.
-  </p>
+
+  <app-loading [isLoading]="loading" message="Loading dashboard...">
+    <div *ngIf="stats && isClient" class="stats-grid">
+      <div class="stat-card"><div class="stat-number">{{ stats.openJobs }}</div><div class="stat-label">Open Jobs</div></div>
+      <div class="stat-card"><div class="stat-number">{{ stats.activeJobs }}</div><div class="stat-label">Active</div></div>
+      <div class="stat-card"><div class="stat-number">{{ stats.totalProposals }}</div><div class="stat-label">Proposals</div></div>
+      <div class="stat-card"><div class="stat-number">{{ stats.completedJobs }}</div><div class="stat-label">Completed</div></div>
+    </div>
+
+    <div *ngIf="stats && !isClient" class="stats-grid">
+      <div class="stat-card"><div class="stat-number">{{ stats.pendingProposals }}</div><div class="stat-label">Pending</div></div>
+      <div class="stat-card"><div class="stat-number">{{ stats.acceptedJobs }}</div><div class="stat-label">Accepted</div></div>
+      <div class="stat-card"><div class="stat-number">{{ stats.completedJobs }}</div><div class="stat-label">Completed</div></div>
+      <div class="stat-card"><div class="stat-number">{{ stats.rejectedProposals }}</div><div class="stat-label">Rejected</div></div>
+    </div>
+
+    <div *ngIf="stats?.recentActivity?.length > 0" class="activity-list">
+      <h3>Recent Activity</h3>
+      <div class="activity-item" *ngFor="let act of stats.recentActivity">
+        {{ act.message }}<span class="date">{{ act.createdAt | date }}</span>
+      </div>
+    </div>
+
+    <div class="quick-links">
+      <a routerLink="/profile">Edit Profile</a>
+      <a routerLink="/jobs">Browse Jobs</a>
+    </div>
+  </app-loading>
 </div>

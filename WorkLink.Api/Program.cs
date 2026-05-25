@@ -1,6 +1,8 @@
 using System.Text;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using WorkLink.Api.Data;
@@ -37,6 +39,12 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ProfileService>();
+builder.Services.AddScoped<SkillService>();
+builder.Services.AddScoped<JobService>();
+builder.Services.AddScoped<ProposalService>();
+builder.Services.AddScoped<ReviewService>();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
@@ -57,6 +65,29 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseExceptionHandler(appError =>
+{
+    appError.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
+        if (contextFeature != null)
+        {
+            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError(contextFeature.Error, "Unhandled exception: {Message}", contextFeature.Error.Message);
+            await context.Response.WriteAsJsonAsync(new { message = "An internal server error occurred." });
+        }
+    });
+});
+
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("HTTP {Method} {Path}", context.Request.Method, context.Request.Path);
+    await next();
+});
+
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -66,6 +97,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
+    await WorkLink.Api.Data.DbSeeder.SeedAsync(db);
 }
 
 app.Run();

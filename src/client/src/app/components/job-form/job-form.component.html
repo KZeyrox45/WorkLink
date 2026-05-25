@@ -1,0 +1,44 @@
+<div class="form-page">
+  <h2>{{ isEdit ? 'Edit Job' : 'Post a Job' }}</h2>
+  <form (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="title">Title</label>
+      <input id="title" type="text" name="title" [(ngModel)]="title" required maxlength="200" />
+    </div>
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" [(ngModel)]="description" required></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="budgetMin">Budget Min ($)</label>
+        <input id="budgetMin" type="number" name="budgetMin" [(ngModel)]="budgetMin" min="0" />
+      </div>
+      <div class="form-group">
+        <label for="budgetMax">Budget Max ($)</label>
+        <input id="budgetMax" type="number" name="budgetMax" [(ngModel)]="budgetMax" min="0" />
+      </div>
+      <div class="form-group">
+        <label for="durationDays">Duration (days)</label>
+        <input id="durationDays" type="number" name="durationDays" [(ngModel)]="durationDays" min="1" max="365" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="category">Category</label>
+      <select id="category" name="category" [(ngModel)]="categoryId" required>
+        <option *ngFor="let cat of allCategories" [value]="cat.id">{{ cat.name }}</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Skills</label>
+      <div class="skill-grid">
+        <div class="skill-tag" *ngFor="let skill of allSkills" [class.selected]="selectedSkillIds.has(skill.id)" (click)="toggleSkill(skill.id)">
+          {{ skill.name }}
+        </div>
+      </div>
+    </div>
+    <div class="error" *ngIf="error">{{ error }}</div>
+    <button type="submit" [disabled]="loading">{{ loading ? 'Saving...' : 'Save' }}</button>
+    <button type="button" class="secondary" routerLink="/jobs">Cancel</button>
+  </form>
+</div>
