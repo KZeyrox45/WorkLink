@@ -5,11 +5,24 @@
       <span class="role-badge">{{ user?.role }}</span>
     </div>
     <div>
+      <a routerLink="/jobs" style="margin-right: 1rem;">Browse Jobs</a>
       <a routerLink="/profile" style="margin-right: 1rem;">Edit Profile</a>
       <button (click)="logout()">Logout</button>
     </div>
   </div>
-  <p style="margin-top: 2rem; color: #666;">
-    Dashboard coming soon.
-  </p>
+  <div style="margin-top: 2rem;">
+    <div *ngIf="user?.role === 'Client'" style="margin-bottom: 1rem;">
+      <a routerLink="/jobs/new" style="
+        display: inline-block;
+        padding: 0.6rem 1.2rem;
+        background: #1976d2;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+      ">Post a Job</a>
+    </div>
+    <p style="color: #666;">
+      Use the navigation above to browse jobs, edit your profile, or view public profiles.
+    </p>
+  </div>
 </div>

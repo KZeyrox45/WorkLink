@@ -39,6 +39,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<SkillService>();
+builder.Services.AddScoped<JobService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 

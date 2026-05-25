@@ -1,0 +1,42 @@
+<div class="detail-page">
+  <div *ngIf="error" style="color: #d32f2f;">{{ error }}</div>
+
+  <div *ngIf="job">
+    <div class="header">
+      <div>
+        <h2>{{ job.title }}</h2>
+        <div class="meta">
+          <span>{{ job.categoryName }}</span>
+          <span class="budget" *ngIf="job.budgetMin || job.budgetMax">
+            {{ job.budgetMin | currency }} - {{ job.budgetMax | currency }}
+          </span>
+          <span *ngIf="job.durationDays">{{ job.durationDays }} days</span>
+          <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
+          <span>Posted {{ job.createdAt | date }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="description">{{ job.description }}</div>
+
+    <div *ngIf="job.skills.length > 0">
+      <strong>Required Skills</strong>
+      <div style="margin-top: 0.4rem;">
+        <span class="skill-tag" *ngFor="let skill of job.skills">{{ skill.name }}</span>
+      </div>
+    </div>
+
+    <div class="client-info">
+      <strong>Client</strong>
+      <div style="margin-top: 0.3rem;">
+        <a [routerLink]="['/users', job.clientId]">{{ job.clientName }}</a>
+      </div>
+    </div>
+
+    <div class="actions" *ngIf="isOwner">
+      <button class="edit-btn" [routerLink]="['/jobs', job.id, 'edit']">Edit</button>
+      <button class="delete-btn" (click)="onDelete()">Delete</button>
+      <button class="back-btn" routerLink="/jobs">Back</button>
+    </div>
+  </div>
+</div>
