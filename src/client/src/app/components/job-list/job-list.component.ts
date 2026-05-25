@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIf, NgFor, NgForOf, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { JobService, JobResponse, CategoryDto, JobListResponse } from '../../services/job.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -15,7 +16,9 @@ import { AuthService } from '../../services/auth.service';
     .header { display: flex; justify-content: space-between; align-items: center; }
     .filters { display: flex; gap: 0.8rem; flex-wrap: wrap; margin: 1.5rem 0; }
     .filters input, .filters select { padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
-    .filters input { flex: 1; min-width: 180px; }
+    .filters .search-wrap { flex: 1; min-width: 180px; position: relative; }
+    .filters .search-wrap input { width: 100%; }
+    .filters .search-wrap .clear-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #999; cursor: pointer; padding: 0 4px; font-size: 1.1rem; }
     .job-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.2rem; margin-bottom: 1rem; }
     .job-card:hover { border-color: #1976d2; }
     .job-title { font-size: 1.15rem; font-weight: 600; color: #1565c0; }
@@ -36,7 +39,7 @@ import { AuthService } from '../../services/auth.service';
     a { text-decoration: none; }
   `]
 })
-export class JobListComponent implements OnInit {
+export class JobListComponent implements OnInit, OnDestroy {
   jobs: JobResponse[] = [];
   categories: CategoryDto[] = [];
   total = 0;
@@ -46,7 +49,12 @@ export class JobListComponent implements OnInit {
   keyword = '';
   selectedCategory = '';
   selectedStatus = '';
+  sortBy = 'newest';
+  sortOrder = 'desc';
   userRole: string | null = null;
+
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   constructor(
     private jobService: JobService,
@@ -57,6 +65,30 @@ export class JobListComponent implements OnInit {
     this.userRole = this.auth.getUserInfo()?.role ?? null;
     this.loadCategories();
     this.loadJobs();
+
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.page = 1;
+      this.loadJobs();
+    });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onSearchInput(value: string) {
+    this.keyword = value;
+    this.searchSubject.next(value);
+  }
+
+  clearSearch() {
+    this.keyword = '';
+    this.onSearchInput('');
   }
 
   private loadCategories() {
@@ -66,7 +98,12 @@ export class JobListComponent implements OnInit {
   }
 
   loadJobs() {
-    const params: any = { page: this.page, pageSize: this.pageSize };
+    const params: any = {
+      page: this.page,
+      pageSize: this.pageSize,
+      sortBy: this.sortBy,
+      sortOrder: this.sortOrder,
+    };
     if (this.keyword.trim()) params.keyword = this.keyword.trim();
     if (this.selectedCategory) params.categoryId = Number(this.selectedCategory);
     if (this.selectedStatus) params.status = this.selectedStatus;
@@ -79,7 +116,17 @@ export class JobListComponent implements OnInit {
     });
   }
 
-  onFilter() {
+  onFilterChange() {
+    this.page = 1;
+    this.loadJobs();
+  }
+
+  onSortChange() {
+    if (this.sortBy === 'budget') {
+      this.sortOrder = 'asc';
+    } else {
+      this.sortOrder = 'desc';
+    }
     this.page = 1;
     this.loadJobs();
   }

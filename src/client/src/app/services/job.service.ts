@@ -76,6 +76,8 @@ export class JobService {
     skillIds?: string;
     status?: string;
     clientId?: string;
+    sortBy?: string;
+    sortOrder?: string;
     page?: number;
     pageSize?: number;
   }): Observable<JobListResponse> {
@@ -87,6 +89,8 @@ export class JobService {
     if (params.skillIds) query.set('skillIds', params.skillIds);
     if (params.status) query.set('status', params.status);
     if (params.clientId) query.set('clientId', params.clientId);
+    if (params.sortBy) query.set('sortBy', params.sortBy);
+    if (params.sortOrder) query.set('sortOrder', params.sortOrder);
     if (params.page) query.set('page', params.page.toString());
     if (params.pageSize) query.set('pageSize', params.pageSize.toString());
     return this.http.get<JobListResponse>(`${this.apiUrl}/jobs?${query}`);

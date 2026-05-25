@@ -7,17 +7,24 @@
   </div>
 
   <div class="filters">
-    <input type="text" placeholder="Search jobs..." [(ngModel)]="keyword" (keyup.enter)="onFilter()" />
-    <select [(ngModel)]="selectedCategory" (change)="onFilter()">
+    <div class="search-wrap">
+      <input type="text" placeholder="Search jobs..." [ngModel]="keyword" (ngModelChange)="onSearchInput($event)" />
+      <button *ngIf="keyword" class="clear-btn" (click)="clearSearch()">&times;</button>
+    </div>
+    <select [(ngModel)]="selectedCategory" (change)="onFilterChange()">
       <option value="">All Categories</option>
       <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
     </select>
-    <select [(ngModel)]="selectedStatus" (change)="onFilter()">
+    <select [(ngModel)]="selectedStatus" (change)="onFilterChange()">
       <option value="">All Statuses</option>
       <option value="Open">Open</option>
       <option value="InProgress">In Progress</option>
       <option value="Completed">Completed</option>
       <option value="Cancelled">Cancelled</option>
+    </select>
+    <select [(ngModel)]="sortBy" (change)="onSortChange()">
+      <option value="newest">Newest First</option>
+      <option value="budget">Budget: Low to High</option>
     </select>
   </div>
 

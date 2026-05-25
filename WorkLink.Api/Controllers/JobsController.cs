@@ -26,6 +26,8 @@ public class JobsController : ControllerBase
         [FromQuery] string? skillIds,
         [FromQuery] string? status,
         [FromQuery] string? clientId,
+        [FromQuery] string? sortBy = "newest",
+        [FromQuery] string? sortOrder = "desc",
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -36,7 +38,8 @@ public class JobsController : ControllerBase
 
         var result = await _jobService.ListAsync(
             keyword, categoryId, budgetMin, budgetMax,
-            parsedSkillIds, status, clientId, page, pageSize);
+            parsedSkillIds, status, clientId, sortBy, sortOrder,
+            page, pageSize);
 
         return Ok(result);
     }

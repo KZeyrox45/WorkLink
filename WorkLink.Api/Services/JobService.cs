@@ -20,6 +20,7 @@ public class JobService
     public async Task<JobListResponse> ListAsync(
         string? keyword, int? categoryId, decimal? budgetMin, decimal? budgetMax,
         List<int>? skillIds, string? status, string? clientId,
+        string? sortBy = "newest", string? sortOrder = "desc",
         int page = 1, int pageSize = 10)
     {
         var query = _db.Jobs
@@ -52,9 +53,15 @@ public class JobService
             query = query.Where(j => j.ClientId == clientId);
 
         var total = await query.CountAsync();
-        query = query.OrderByDescending(j => j.CreatedAt)
-                     .Skip((page - 1) * pageSize)
-                     .Take(pageSize);
+
+        query = (sortBy?.ToLower(), sortOrder?.ToLower()) switch
+        {
+            ("budget", "asc") => query.OrderBy(j => j.BudgetMin ?? 0),
+            ("budget", "desc") => query.OrderByDescending(j => j.BudgetMin ?? 0),
+            _ => query.OrderByDescending(j => j.CreatedAt)
+        };
+
+        query = query.Skip((page - 1) * pageSize).Take(pageSize);
 
         var jobs = await query.ToListAsync();
 
