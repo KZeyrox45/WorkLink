@@ -44,6 +44,23 @@ public class JobsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("mine")]
+    [Authorize(Roles = "Client")]
+    public async Task<IActionResult> GetMyJobs(
+        [FromQuery] string? status,
+        [FromQuery] string? sortBy = "newest",
+        [FromQuery] string? sortOrder = "desc",
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var result = await _jobService.ListAsync(
+            null, null, null, null,
+            null, status, clientId, sortBy, sortOrder,
+            page, pageSize);
+        return Ok(result);
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {

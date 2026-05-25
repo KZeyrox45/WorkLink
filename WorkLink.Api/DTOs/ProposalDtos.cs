@@ -14,6 +14,19 @@ public class CreateProposalRequest
     public int EstimatedDays { get; set; }
 }
 
+public class ProposalListResponse
+{
+    public int Id { get; set; }
+    public int JobId { get; set; }
+    public string JobTitle { get; set; } = string.Empty;
+    public string ClientName { get; set; } = string.Empty;
+    public string CoverLetter { get; set; } = string.Empty;
+    public decimal BidAmount { get; set; }
+    public int EstimatedDays { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+}
+
 public class ProposalResponse
 {
     public int Id { get; set; }

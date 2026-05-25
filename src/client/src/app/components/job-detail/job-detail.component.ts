@@ -6,6 +6,7 @@ import { JobService, JobResponse } from '../../services/job.service';
 import { ProposalService, ProposalResponse } from '../../services/proposal.service';
 import { ReviewService, ReviewResponse } from '../../services/review.service';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-job-detail',
@@ -93,7 +94,8 @@ export class JobDetailComponent implements OnInit {
     private jobService: JobService,
     private proposalService: ProposalService,
     private reviewService: ReviewService,
-    private auth: AuthService
+    private auth: AuthService,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -195,7 +197,7 @@ export class JobDetailComponent implements OnInit {
         this.job = job;
         this.loadReviews();
       },
-      error: () => alert('Failed to complete job.'),
+      error: () => this.toast.show('Failed to complete job.', 'error'),
     });
   }
 
@@ -227,32 +229,42 @@ export class JobDetailComponent implements OnInit {
       next: () => {
         this.loadProposals();
         if (this.job) this.job.status = 'InProgress';
+        this.toast.show('Proposal accepted!', 'success');
       },
-      error: () => alert('Failed to accept proposal.'),
+      error: () => this.toast.show('Failed to accept proposal.', 'error'),
     });
   }
 
   onReject(proposalId: number) {
     if (!confirm('Reject this proposal?')) return;
     this.proposalService.reject(proposalId).subscribe({
-      next: () => this.loadProposals(),
-      error: () => alert('Failed to reject proposal.'),
+      next: () => {
+        this.loadProposals();
+        this.toast.show('Proposal rejected.', 'info');
+      },
+      error: () => this.toast.show('Failed to reject proposal.', 'error'),
     });
   }
 
   onWithdraw(proposalId: number) {
     if (!confirm('Withdraw this proposal?')) return;
     this.proposalService.withdraw(proposalId).subscribe({
-      next: () => this.loadProposals(),
-      error: () => alert('Failed to withdraw proposal.'),
+      next: () => {
+        this.loadProposals();
+        this.toast.show('Proposal withdrawn.', 'info');
+      },
+      error: () => this.toast.show('Failed to withdraw proposal.', 'error'),
     });
   }
 
   onDelete() {
     if (!this.job || !confirm('Delete this job?')) return;
     this.jobService.deleteJob(this.job.id).subscribe({
-      next: () => this.router.navigate(['/jobs']),
-      error: () => alert('Failed to delete job.'),
+      next: () => {
+        this.toast.show('Job deleted.', 'success');
+        this.router.navigate(['/jobs']);
+      },
+      error: () => this.toast.show('Failed to delete job.', 'error'),
     });
   }
 }

@@ -8,6 +8,7 @@ export interface ProposalResponse {
   jobTitle: string;
   freelancerId: string;
   freelancerName: string;
+  clientName?: string;
   coverLetter: string;
   bidAmount: number;
   estimatedDays: number;
@@ -26,6 +27,10 @@ export class ProposalService {
   private apiUrl = 'http://localhost:5114/api';
 
   constructor(private http: HttpClient) {}
+
+  listMine(): Observable<ProposalResponse[]> {
+    return this.http.get<ProposalResponse[]>(`${this.apiUrl}/proposals/mine`);
+  }
 
   listByJob(jobId: number): Observable<ProposalResponse[]> {
     return this.http.get<ProposalResponse[]>(`${this.apiUrl}/jobs/${jobId}/proposals`);

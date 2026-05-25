@@ -139,6 +139,27 @@ public class ProposalService
         return MapToResponse(proposal);
     }
 
+    public async Task<List<ProposalListResponse>> ListByFreelancerAsync(string freelancerId)
+    {
+        return await _db.Proposals
+            .Where(p => p.FreelancerId == freelancerId)
+            .Include(p => p.Job).ThenInclude(j => j.Client)
+            .OrderByDescending(p => p.CreatedAt)
+            .Select(p => new ProposalListResponse
+            {
+                Id = p.Id,
+                JobId = p.JobId,
+                JobTitle = p.Job.Title,
+                ClientName = p.Job.Client.DisplayName,
+                BidAmount = p.BidAmount,
+                EstimatedDays = p.EstimatedDays,
+                Status = p.Status.ToString(),
+                CreatedAt = p.CreatedAt,
+                CoverLetter = p.CoverLetter
+            })
+            .ToListAsync();
+    }
+
     private async Task<ProposalResponse?> GetByIdAsync(int id)
     {
         var proposal = await _db.Proposals

@@ -101,6 +101,15 @@ public class ProposalsController : ControllerBase
         }
     }
 
+    [HttpGet("~/api/proposals/mine")]
+    [Authorize(Roles = "Freelancer")]
+    public async Task<IActionResult> GetMyProposals()
+    {
+        var freelancerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var proposals = await _proposalService.ListByFreelancerAsync(freelancerId);
+        return Ok(proposals);
+    }
+
     [HttpPut("~/api/proposals/{id}/withdraw")]
     [Authorize(Roles = "Freelancer")]
     public async Task<IActionResult> Withdraw(int id)

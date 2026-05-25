@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
+import { roleGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -57,6 +58,22 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./components/job-form/job-form.component').then(
         (c) => c.JobFormComponent
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'my-jobs',
+    loadComponent: () =>
+      import('./components/my-jobs/my-jobs.component').then(
+        (c) => c.MyJobsComponent
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'my-proposals',
+    loadComponent: () =>
+      import('./components/my-proposals/my-proposals.component').then(
+        (c) => c.MyProposalsComponent
       ),
     canActivate: [authGuard],
   },
